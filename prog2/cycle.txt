@@ -1,0 +1,118 @@
+A Simple Cycle Detection Algorithm
+==================================
+Assume we've got a set of processes and single-use resources, as is the case
+with the deadlock detection problem. Here's a simple way to determine if there
+is a cycle in the resource graph, and how to identify the processes and
+resources involved with the cycle.
+
+Step 1 -- Build the resource graph.
+===================================
+Assume we've got an array of nodes, each of which has the following
+components:
+
+    e - integer (subscript) of the "pointed-to" node (to which there
+        is an edge in the resource graph).
+
+        In a process node, e is the subscript of the node for the
+        resource being awaited (if any).
+
+        In a resource node, e is the subscript of the node for the
+        owner process (if any).
+
+        If there is no edge from the node, then set e to -1 (which
+        is interpreted by the algorithm as indicating no edge exists).
+
+    v - zero if a node hasn't yet been visited in a depth-first search,
+        and non-zero if the node has been visited.
+
+Note that there is at most a single edge FROM a process to a resource, and
+a single edge FROM a resource to a process. But there may be multiple edges
+pointing TO a process or a resource. This is why we only need a single entry
+in each node (namely 'e') that identifies the "pointed-to" node.
+
+If we've got a maximum of MAXPROC processes and MAXRSRC resources, then the
+array that represents the nodes in the resource graph will need no more than
+MAXPROC + MAXRSRC entries. So you could write this:
+
+    struct node {
+        int e;
+        int v;
+    } rg[MAXPROC+MAXRSRC];
+
+("rg" is used as the name to suggest this is a resource graph.)
+
+Assume in a specific case that we have np processes and nr resources.
+
+Associate subscripts 0 through np - 1 with processes.
+
+Associate subscripts MAXPROC through MAXPROC + nr - 1 with resources.
+That is, the element of rg that will be associated with resource 4
+if there are a maximum of 10 processes (MAXPROC=10) will be 13.
+
+Using the current state of processes and resources, set up the appropriate
+entries in the rg array.
+
+EXAMPLE. Suppose MAXPROC = 10 and MAXRSRC = 20, as it does in the deadlock
+problem. If we have 2 processes and 2 resources, then we'd use the following
+array entries:
+
+    rg[0] - process 0
+    rg[1] - process 1
+    rg[10] - resource 0
+    rg[11] - resource 1
+
+Assume process 0 owns resource 0 and is waiting for resource 1.
+Assume process 1 owns resource 1 and is waiting for resource 0.
+We'd then have rg[0].e = 11, rg[1].e = 10, rg[10].e = 0, and rg[11].e = 1.
+Naturally we don't care about the other entries.
+END OF EXAMPLE.
+
+Step 2 -- Search for a cycle in the graph, starting from each process node.
+===========================================================================
+We assume the resource graph has been properly constructed, and that np and
+nr indicate the number of processes and resources, respectfully.
+
+The search is basically a depth-first search, with pseudo-code that looks
+like this (Q and P are integer subscripts):
+
+    A: for each process node P (that is, for P = 0, 1, ..., np-1):
+        Set v = 0 in all nodes (all process and resource nodes)
+        Set rg[P].v to 1 (mark node P as having been visited).
+        Set Q = P.
+        B: Set Q = rg[Q].e
+           If Q is -1 (no edge from the previous node), then repeat the
+          search starting at the next process node (that is, continue
+          the for loop at A with the next value of P).
+           If Q is NOT -1 (there is an edge from the node being visited):
+          If Q = P (that is, we're returned to the starting node),
+            then we have found a cycle starting with process P.
+            So stop the depth-first search and go to step 3 (below).
+          If Q is marked (that is, if rg[Q].v is non-zero), we have
+            detected a cycle, but it didn't begin with P. Go back to
+            the loop A and repeat for the next valid value of P.
+          Otherwise mark node Q as having been visited (rg[Q].v = 1),
+            and repeat from B.
+
+If we reach this point (we did a depth-first search starting with each
+process and didn't find any cycles), then there is no deadlock.
+
+Step 3 -- Display the processes and resources involved in the cycle.
+====================================================================
+We now know there is a cycle beginning with process P. So we can easily display
+the IDs of the processes involved by just following the edges in the graph
+starting with process P:
+
+       Set Q = P
+    X: Print process Q's identification
+       Set Q = rg[Q].e  (follow edge to resource wanted by Q)
+       Set Q = rg[Q].e  (follow edge to process owning resource Q)
+       If Q is not P, repeat from X.
+
+We can do almost the same thing for resources; just skip the first node (P).
+
+       Set R = rg[P].e
+       Set Q = R
+    Y: Print resource Q's identification
+       Set Q = rg[Q].e  (follow edge to process owning resource Q)
+       Set Q = rg[Q].e  (follow edge to resource wanted by process Q)
+       If Q is not R, repeat from Y.

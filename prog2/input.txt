@@ -1,0 +1,22 @@
+1 2
+5  L1  L2  C10  U1  U2
+3 3
+5   L1   L2   C2  U1   U2
+5   L1   L2   C2  U1   U2
+4   L3   C5   U3  C2
+2 2
+5   L1   L2   C2  U1   U2
+5   L2   L1   C2  U2   U1
+3 3
+6   L1  C3  L2   C3  U1  U2
+6   L2  C3  L3   C3  U2  U3
+6   L3  C3  L1   C3  U3  U1
+7 6
+7   L1   C5   L2  C5   U1   U2  C3
+4   C3   L3   C5  U3
+5   C3   L2   C2  U2   C3
+6   L4   C6   L3  U4   C2   U3
+6   L3   C5   L5  U3   U5   C2
+7   L6   C5   L2  C2   U2   U6  C3
+7   L5   C2   L4  C5   U5   C2  U4
+0 0
